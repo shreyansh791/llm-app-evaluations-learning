@@ -1,0 +1,600 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║        🧪 HOW TO EVALUATE LLM APPLICATIONS: THE COMPLETE WORKFLOW 🧪          ║
+║                  Study notes based on the CampusX tutorial                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────── 🎨 COLOR LEGEND ────────────────────────────────┐
+│  🔵 Definition / core concept        🟢 Best practice / success / fix        │
+│  🔴 Risk / failure / mistake         🟡 Example / case study                 │
+│  🟣 Metric / measurement             🟠 Process step                         │
+│  ⭐ Very important — remember this                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+📑 TABLE OF CONTENTS
+   1. Overview
+   2. Fundamentals of LLM Evaluation
+   3. Case Study: Zomato Customer Email Classification System
+   4. The 10-Step LLM Application Evaluation Workflow
+   5. Multi-Eval Architectures for Complex Applications
+   6. Code & Practical Examples
+   7. Errors & Troubleshooting
+   8. Comparisons
+   9. Best Practices / Common Mistakes
+  10. End-to-End Flow
+  11. Key Takeaways
+  12. Quick Revision
+  13. Glossary
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 📖 OVERVIEW
+████████████████████████████████████████████████████████████████████████████████
+
+Building Large Language Model (LLM) applications is fast and accessible, with
+initial prototypes often created in minutes. However, moving an LLM application
+from a WORKING PROTOTYPE to a RELIABLE PRODUCTION SYSTEM requires SYSTEMATIC
+EVALUATION.
+
+This study guide provides structured notes on the complete workflow for
+evaluating LLM applications, based on the tutorial presented by CampusX.
+It covers:
+   🔵 Why evaluation is necessary
+   🔵 The distinction between MODEL and APPLICATION evaluations
+   🟠 A 10-step evaluation lifecycle, illustrated through an enterprise
+      email classification case study (🟡 Zomato)
+   🟣 Evaluator selection strategies
+   🟢 Post-deployment monitoring mechanisms
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 📝 DETAILED NOTES
+████████████████████████████████████████████████████████████████████████████████
+
+================================================================================
+ 1. 🔵 FUNDAMENTALS OF LLM EVALUATION
+================================================================================
+
+┌─ ⭐ DEFINITION ──────────────────────────────────────────────────────────────┐
+│ Evaluating LLM applications ("LLM Evals") is the process of quantitatively   │
+│ and qualitatively assessing the PERFORMANCE, SAFETY, CORRECTNESS, and        │
+│ RELIABILITY of an LLM-powered system BEFORE and AFTER deployment.            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+--- ❓ Why LLM Evaluation Matters ---------------------------------------------
+
+  🔴 Unpredictability
+       Non-deterministic LLM outputs can fail unpredictably across varied
+       user inputs.
+
+  🔴 Risk Mitigation
+       Direct deployment without evaluation risks routing errors, inaccurate
+       responses, and degraded user experience.
+
+  🟢 Repeatable Optimization
+       Systematic evaluation establishes a benchmark to measure whether prompt
+       edits or model upgrades yield genuine improvements.
+
+--- 🗂️ Categorization of LLM Evals --------------------------------------------
+
+LLM evaluations fall into TWO distinct domains:
+
+                         ┌──────────────┐
+                         │  LLM EVALS   │
+                         └──────┬───────┘
+                 ┌──────────────┴──────────────┐
+                 ▼                             ▼
+        ┌─────────────────┐           ┌──────────────────────┐
+        │ 🔷 MODEL EVALS  │           │ 🟩 APPLICATION EVALS │
+        └─────────────────┘           └──────────────────────┘
+
+  🔷 MODEL EVALS
+     • Evaluates base or foundational models (e.g., GPT-4, Llama 3, Claude 3)
+       on broad academic benchmarks (e.g., MMLU, GSM8K, HumanEval).
+     • Conducted primarily by AI research organizations and foundation model
+       creators to gauge general reasoning, knowledge, and coding abilities.
+
+  🟩 APPLICATION EVALS
+     • Evaluates end-to-end LLM applications built for specific business tasks
+       (e.g., customer support bots, email classifiers, RAG pipelines).
+     • Conducted by AI engineers and application developers.
+     • Focuses on task-specific correctness, adherence to business constraints,
+       latency, and reliability.
+
+
+================================================================================
+ 2. 🟡 CASE STUDY CONTEXT: ZOMATO CUSTOMER EMAIL CLASSIFICATION SYSTEM
+================================================================================
+
+To illustrate the end-to-end workflow, consider a practical application built
+for an enterprise like Zomato.
+
+┌─ 🔴 BUSINESS PROBLEM ────────────────────────────────────────────────────────┐
+│ Zomato receives THOUSANDS of customer support emails daily. Manually         │
+│ reading, categorizing, and tagging each email to route it to the correct     │
+│ department is labor-intensive, slow, and expensive.                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─ 🟢 AUTOMATED SOLUTION ──────────────────────────────────────────────────────┐
+│ An LLM application reads the email text and automatically classifies it      │
+│ into one of THREE routing categories.                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────┬───────────────────────────────────────┬───────────────────────┐
+  │ CATEGORY     │ COVERS                                │ ROUTED TO             │
+  ├──────────────┼───────────────────────────────────────┼───────────────────────┤
+  │ 💳 Billing   │ Double charging, refund requests,     │ Billing Team          │
+  │              │ payment failures                      │                       │
+  ├──────────────┼───────────────────────────────────────┼───────────────────────┤
+  │ ⚙️ Technical │ App crashes, login failures,          │ Technical Team        │
+  │              │ performance glitches                  │                       │
+  ├──────────────┼───────────────────────────────────────┼───────────────────────┤
+  │ 💬 General   │ Operating hours, delivery coverage,   │ Customer Support Team │
+  │              │ general terms                         │                       │
+  └──────────────┴───────────────────────────────────────┴───────────────────────┘
+
+--- 🏗️ System Architecture ----------------------------------------------------
+
+                                              ┌──► 💳 Billing
+   📧 User Email ──► System Prompt + LLM ─────┼──► ⚙️ Technical
+                                              └──► 💬 General
+
+  🔴 CAUTION: Although this application can be built quickly, deploying it
+     directly without evaluation exposes the business to operational misroutes.
+
+
+================================================================================
+ 3. 🟠 THE 10-STEP LLM APPLICATION EVALUATION WORKFLOW
+================================================================================
+
+Evaluating an LLM application requires a STRUCTURED, REPEATABLE LOOP.
+
+   🔵 FRAME        🟣 SETUP              🟡 ITERATE LOOP               🟢 SHIP
+  ┌────────┐    ┌──────────┐    ┌───────────────────────────────┐    ┌────────┐
+  │ 1 Task │──► │ 3 Golden │──► │ 5 Run ► 6 Evaluate ► 7 Analyze│──► │9 Deploy│
+  │ 2 Crit.│    │ 4 Method │    │   ▲                       │   │    │10 Mon. │
+  └────────┘    └──────────┘    │   └──── 8 Improve ◄───────┘   │    └────────┘
+                                └───────────────────────────────┘
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 1: Define Task and Target
+--------------------------------------------------------------------------------
+   🎯 Target : Specify the system, component, or workflow under test
+               (in this case, the email classification pipeline).
+   📌 Task   : Define the precise task being executed
+               (here, multi-class text classification).
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 2: Define Success Criteria and Evaluation Metrics
+--------------------------------------------------------------------------------
+   ✅ Success Criteria : Establish what constitutes successful system
+                         performance (e.g., correctly classifying customer
+                         queries to avoid misrouting).
+   🟣 Metric           : Select a quantitative metric suited to the task type.
+                         For multi-class classification, ACCURACY is the
+                         primary metric (e.g., percentage of correctly
+                         classified emails out of total queries).
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 3: Build the Golden Dataset
+--------------------------------------------------------------------------------
+   ┌─ ⭐ DEFINITION ──────────────────────────────────────────────────────────┐
+   │ A GOLDEN DATASET is a high-quality benchmark dataset consisting of       │
+   │ representative inputs paired with manually verified expected outputs    │
+   │ (ground truth).                                                          │
+   └──────────────────────────────────────────────────────────────────────────┘
+
+   Structure:
+     📥 Input column           : Message (Raw email text).
+     📤 Expected output column : Type (Ground truth label: Billing,
+                                 Technical, or General).
+
+   Size: Typically 50 to 500 rows for initial evaluation.
+
+   🟢 Curation Best Practices:
+     • Source data from real past production interactions
+       (e.g., historical Zomato customer chats and emails).
+     • Have human experts manually verify and annotate the ground truth labels.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 4: Define Evaluation Method (Evaluator Selection)
+--------------------------------------------------------------------------------
+   Select WHO or WHAT evaluates the system's generated output against the
+   ground truth. Three primary evaluation methods exist:
+
+   🤖 AUTOMATED (CODE-BASED)
+      • Uses deterministic code (e.g., Python scripts) to calculate metrics
+        like exact match, accuracy, or F1 score.
+      • Best suited for structured or categorical outputs.
+      • ✅ Applied in this case study because comparing single-word
+        categories requires simple exact-match logic.
+
+   👤 HUMAN EVALUATION
+      • Human annotators manually inspect and score outputs.
+      • High accuracy for complex reasoning, but 🔴 slow, costly, and
+        non-scalable for continuous iteration.
+
+   ⚖️ LLM-AS-A-JUDGE
+      • Uses an external LLM to evaluate the primary system's output against
+        expected answers.
+      • Necessary when outputs are long-form unstructured text where simple
+        code comparisons cannot evaluate semantic correctness.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 5: Run the Model / System
+--------------------------------------------------------------------------------
+   Feed the input messages from the Golden Dataset into the LLM application
+   pipeline to generate predicted outputs for every record.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 6: Evaluate Results
+--------------------------------------------------------------------------------
+   Pass the generated predictions and ground truth labels into the evaluation
+   method to compute the evaluation metric.
+
+   🟣 Example: The initial test run yields an ACCURACY OF 80%
+               (80 correct classifications out of 100 emails).
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 7: Analyze Results (Error Analysis)
+--------------------------------------------------------------------------------
+   Examine the misclassified records (the 20% failure cases) to perform
+   root cause analysis:
+
+   🔴 Prompt Ambiguity         : The system prompt may lack clear distinction
+                                 boundaries between Billing and Technical
+                                 queries.
+   🔴 Model Capability Deficit : The underlying LLM (e.g., a small open-source
+                                 or low-parameter model) may fail to capture
+                                 complex language nuances.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 8: Improve the System and Iterate
+--------------------------------------------------------------------------------
+   Apply targeted fixes based on the error analysis:
+     🟢 Option A: Refine the system prompt by adding explicit category
+                  definitions or few-shot examples.
+     🟢 Option B: Switch to a higher-capacity LLM.
+
+   Re-run the evaluation against the SAME Golden Dataset. Because the
+   evaluation dataset is fixed, results are directly comparable across runs:
+
+     Run 1 (Base Prompt + Base Model) : 80%  ████████████████░░░░
+     Run 2 (Refined Prompt)           : 90%  ██████████████████░░  ▲ +10%
+     Run 3 (Upgraded LLM)             : 95%  ███████████████████░  ▲ +5%
+
+   The team continues this loop until performance reaches the target threshold.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 9: Deploy the System 🚀
+--------------------------------------------------------------------------------
+   Once the system satisfies accuracy targets (e.g., 95%+ accuracy), deploy
+   the LLM application to live production.
+
+--------------------------------------------------------------------------------
+ 🟠 STEP 10: Production Monitoring and Data Flywheel
+--------------------------------------------------------------------------------
+   Post-deployment monitoring is required to capture edge cases and failures
+   in live traffic:
+
+   🔴 Failure Detection         : When a misroute occurs in production (e.g., a
+                                  billing email routed to Technical Support),
+                                  the receiving team flags the error.
+   🟡 Golden Dataset Expansion  : The flagged production email and its correct
+                                  ground truth label are extracted and added
+                                  into the Golden Dataset.
+   🟢 Continuous Re-Evaluation  : The enlarged Golden Dataset is used to
+                                  re-evaluate the application, driving
+                                  continuous system reliability.
+
+
+================================================================================
+ 4. 🧩 MULTI-EVAL ARCHITECTURES FOR COMPLEX APPLICATIONS
+================================================================================
+
+┌─ ⭐ KEY PRINCIPLE ───────────────────────────────────────────────────────────┐
+│ A single LLM application often requires MULTIPLE distinct LLM evaluations.  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+While simple applications (like single-prompt classifiers) use one main
+evaluation, complex systems require separate evaluations across individual
+components.
+
+--- 🟡 Example: RAG (Retrieval-Augmented Generation) System Evals --------------
+
+In a RAG application, multiple evaluations run concurrently:
+
+                           ┌──────────────────┐
+                           │ RAG APPLICATION  │
+                           └────────┬─────────┘
+        ┌──────────────┬────────────┴───┬────────────────────┐
+        ▼              ▼                ▼                    ▼
+   🔍 Retriever   🧬 Embedding    🔁 End-to-End RAG   ⏱️ Performance/Latency
+
+  🔍 Retriever Eval
+       Measures the vector search module's ability to retrieve relevant
+       context chunks (e.g., Recall@K, Precision@K).
+  🧬 Embedding Model Eval
+       Evaluates vector space quality and similarity ranking accuracy.
+  🔁 End-to-End RAG Workflow Eval
+       Evaluates generator faithfulness, answer relevance, and context
+       utilization.
+  ⏱️ System Performance / Latency Eval
+       Measures end-to-end response times, token throughput, and system
+       resource costs.
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 💻 CODE & PRACTICAL EXAMPLES
+████████████████████████████████████████████████████████████████████████████████
+
+--- 📊 Golden Dataset Structure ------------------------------------------------
+
+  ┌─────────────────────────────────────────────┬──────────────────────────────┐
+  │ MESSAGE                                     │ EXPECTED TYPE (GROUND TRUTH) │
+  ├─────────────────────────────────────────────┼──────────────────────────────┤
+  │ My card was charged twice for order #1042   │ 💳 Billing                   │
+  │ The app crashes immediately upon login      │ ⚙️ Technical                 │
+  │ What are your operating hours on weekends?  │ 💬 General                   │
+  └─────────────────────────────────────────────┴──────────────────────────────┘
+
+--- 🐍 Automated Evaluation Script (Python Conceptual Implementation) ----------
+
+The following Python script demonstrates how automated exact-match accuracy
+evaluation is executed over the Golden Dataset:
+
+────────────────────────────────── python ──────────────────────────────────────
+from typing import List, Dict
+
+# Golden Dataset: Inputs paired with Ground Truth labels
+golden_dataset: List[Dict[str, str]] = [
+    {"message": "My card was charged twice for order #1042", "expected": "Billing"},
+    {"message": "The app crashes immediately upon login", "expected": "Technical"},
+    {"message": "What are your operating hours on weekends?", "expected": "General"}
+]
+
+def mock_llm_classifier(email_text: str) -> str:
+    """
+    Simulates the LLM application classification logic.
+    In practice, this calls the LLM API with the system prompt.
+    """
+    text_lower = email_text.lower()
+    if "charged" in text_lower or "card" in text_lower:
+        return "Billing"
+    elif "crash" in text_lower or "login" in text_lower:
+        return "Technical"
+    else:
+        return "General"
+
+def evaluate_application(dataset: List[Dict[str, str]]) -> float:
+    """
+    Calculates accuracy by comparing LLM predictions against expected labels.
+    """
+    correct_count = 0
+    total_records = len(dataset)
+
+    for item in dataset:
+        prediction = mock_llm_classifier(item["message"])
+        ground_truth = item["expected"]
+
+        if prediction == ground_truth:
+            correct_count += 1
+
+    accuracy = (correct_count / total_records) * 100
+    return accuracy
+
+# Run Evaluation
+accuracy_score = evaluate_application(golden_dataset)
+print(f"Evaluation Accuracy: {accuracy_score:.2f}%")
+────────────────────────────────────────────────────────────────────────────────
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 🚨 ERRORS & TROUBLESHOOTING
+████████████████████████████████████████████████████████████████████████████████
+
+ 🔴 PROMPT AMBIGUITY
+    Root Cause  : System prompt instructions do not explicitly distinguish
+                  overlapping boundaries (e.g., billing technicalities vs
+                  general billing).
+    🟢 Fix      : Update system prompt with explicit boundary definitions and
+                  few-shot examples.
+
+ 🔴 MODEL CAPACITY DEFICIT
+    Root Cause  : Small or low-parameter base models struggle with nuanced
+                  language classification.
+    🟢 Fix      : Upgrade to a higher-capacity LLM or fine-tune a specialized
+                  model.
+
+ 🔴 PRODUCTION MISROUTING
+    Root Cause  : Out-of-distribution user emails present novel phrasing not
+                  covered in initial test data.
+    🟢 Fix      : Implement production error logging, extract misclassified
+                  emails, and append them to the Golden Dataset.
+
+ 🔴 STALE BENCHMARK DATA
+    Root Cause  : Golden Dataset does not reflect shifting user query
+                  distributions over time.
+    🟢 Fix      : Continuously refresh Golden Datasets using production
+                  sampling flywheels.
+
+
+████████████████████████████████████████████████████████████████████████████████
+ ⚖️ COMPARISONS
+████████████████████████████████████████████████████████████████████████████████
+
+--- 1. 🔷 Model Evals vs. 🟩 Application Evals ---------------------------------
+
+  ┌───────────────┬──────────────────────────────┬──────────────────────────────┐
+  │ DIMENSION     │ 🔷 MODEL EVALS               │ 🟩 APPLICATION EVALS         │
+  ├───────────────┼──────────────────────────────┼──────────────────────────────┤
+  │ Primary Focus │ Base LLM capability          │ Task-specific correctness,   │
+  │               │ (reasoning, coding, general  │ adherence to business logic, │
+  │               │ knowledge).                  │ and latency.                 │
+  ├───────────────┼──────────────────────────────┼──────────────────────────────┤
+  │ Target        │ AI Research Labs &           │ AI Engineers, Software       │
+  │ Audience      │ Foundation Model Developers. │ Developers, & Enterprise     │
+  │               │                              │ Practitioners.               │
+  ├───────────────┼──────────────────────────────┼──────────────────────────────┤
+  │ Benchmarks    │ Public datasets (MMLU,       │ Custom, domain-specific      │
+  │ Used          │ GSM8K, HumanEval).           │ Golden Datasets.             │
+  ├───────────────┼──────────────────────────────┼──────────────────────────────┤
+  │ Evaluation    │ Standalone model parameters. │ End-to-end pipeline (Prompts │
+  │ Scope         │                              │ + LLM + Tools + Vector DBs). │
+  └───────────────┴──────────────────────────────┴──────────────────────────────┘
+
+--- 2. 🧮 Evaluation Methods Comparison ----------------------------------------
+
+ 🤖 AUTOMATED (CODE-BASED)
+    Best Used For : Categorical outputs, exact matches, JSON/structured data.
+    🟢 Advantages : Fast, deterministic, zero marginal cost, easy to integrate
+                    into CI/CD.
+    🔴 Limitations: Cannot evaluate semantic nuance in long-form text.
+
+ 👤 HUMAN EVALUATION
+    Best Used For : Subjective assessment, creative content, nuanced domain
+                    review.
+    🟢 Advantages : High accuracy and deep alignment with human preference.
+    🔴 Limitations: Expensive, slow, non-scalable, inconsistent across
+                    annotators.
+
+ ⚖️ LLM-AS-A-JUDGE
+    Best Used For : Long-form generation, RAG answer relevance, summarization
+                    quality.
+    🟢 Advantages : Scalable, handles semantic comparison without exact
+                    keyword match.
+    🔴 Limitations: Subject to judge bias, API cost, and potential
+                    non-determinism.
+
+
+████████████████████████████████████████████████████████████████████████████████
+ ✅ BEST PRACTICES  /  ❌ COMMON MISTAKES
+████████████████████████████████████████████████████████████████████████████████
+
+┌─ 🟢 BEST PRACTICES ──────────────────────────────────────────────────────────┐
+│ ✅ Build Golden Datasets from Real Data: Always populate golden datasets     │
+│    using anonymized real customer interactions rather than synthetic toy     │
+│    data.                                                                     │
+│ ✅ Lock Benchmarks for Regression Testing: Keep the evaluation dataset       │
+│    consistent across iterations so performance shifts reflect genuine        │
+│    prompt or model changes.                                                  │
+│ ✅ Implement Production Flywheels: Treat evaluation as an active production  │
+│    loop where live errors systematically expand the golden benchmark.        │
+│ ✅ Decompose Complex Systems: Run modular evaluations on sub-components      │
+│    (e.g., retrieval vs. generation in RAG) rather than treating the          │
+│    application as a black box.                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─ 🔴 COMMON MISTAKES ─────────────────────────────────────────────────────────┐
+│ ❌ Deploying Without Evaluation: Relying on informal spot-checks ("vibe      │
+│    checks") on 2–3 sample prompts before going to production.                │
+│ ❌ Over-reliance on Manual Review: Relying entirely on manual human          │
+│    inspection for routine iterative testing, creating engineering            │
+│    bottlenecks.                                                              │
+│ ❌ Ignoring Production Failures: Failing to capture live misclassifications  │
+│    to update test datasets.                                                  │
+│ ❌ Conflating Model Quality with Application Quality: Assuming a top-tier    │
+│    base model automatically guarantees an accurate, error-free application   │
+│    without proper prompt engineering and workflow evaluation.                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 🔄 END-TO-END FLOW
+████████████████████████████████████████████████████████████████████████████████
+
+🔵 [Phase 1: Task Framing]
+   Task Definition ──► Success Criteria ──► Metric Selection (Accuracy)
+
+🟣 [Phase 2: Dataset & Method Setup]
+   Past Customer Data ──► Manual Ground Truth Labeling ──► Golden Dataset (50-500 rows)
+   Select Evaluator Method (Automated Code / Human / LLM Judge)
+
+🟡 [Phase 3: Iterative Development Loop]
+   ┌──► Run LLM Application on Golden Dataset
+   │    │
+   │    ▼
+   │    Evaluate Results & Compute Metric (e.g., 80% Accuracy)
+   │    │
+   │    ▼
+   │    Analyze Errors & Identify Failure Modes
+   │    │
+   │    ▼
+   └─── Refine System Prompt / Switch LLM Model (Target: 95%+ Accuracy)
+
+🟢 [Phase 4: Deployment & Flywheel]
+   Deploy System to Production ──► Monitor Live Output ──► Flag Misclassifications
+            ▲                                                          │
+            └────────────── Append Flagged Cases to Golden Dataset ────┘
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 🎯 KEY TAKEAWAYS
+████████████████████████████████████████████████████████████████████████████████
+
+ ⭐ 1. 🛡️ Evaluation Prevents Operational Failures
+        Building an LLM app takes minutes, but establishing reliability through
+        structured evaluation is what makes it production-ready.
+
+ ⭐ 2. 🔀 Application Evals Differ from Model Evals
+        Application evals focus on business logic, task accuracy, and system
+        integration rather than generic LLM benchmarks.
+
+ ⭐ 3. 🏆 The Golden Dataset is Foundational
+        High-quality inputs paired with verified ground-truth labels enable
+        repeatable, automated testing.
+
+ ⭐ 4. ⚖️ Choose the Right Evaluator
+        Use automated code for categorical data, LLM judges for unstructured
+        text, and humans for subjective validation.
+
+ ⭐ 5. 🔄 Evaluation is a Continuous Loop
+        Post-deployment monitoring feeds live production failures back into the
+        Golden Dataset, ensuring long-term system resilience.
+
+
+████████████████████████████████████████████████████████████████████████████████
+ ⚡ QUICK REVISION
+████████████████████████████████████████████████████████████████████████████████
+
+  🔵 LLM Evals           → Quantitative and qualitative testing of LLM systems.
+  🏆 Golden Dataset      → Benchmark of real inputs paired with verified ground
+                           truth labels (50–500 rows).
+  🤖 Automated Code Eval → Python scripts comparing predictions against ground
+                           truth (best for classification).
+  ⚖️ LLM-as-a-Judge      → Utilizing an external LLM to evaluate complex,
+                           unstructured outputs.
+  🔄 Data Flywheel       → Capturing production errors to continuously expand
+                           test datasets.
+  🧩 Multi-Eval System   → Running separate evaluations on distinct pipeline
+                           components (e.g., RAG retriever vs. generator).
+
+
+████████████████████████████████████████████████████████████████████████████████
+ 📚 GLOSSARY
+████████████████████████████████████████████████████████████████████████████████
+
+  APPLICATION EVAL
+     Assessment of an end-to-end LLM system built for a specific enterprise
+     task.
+
+  GOLDEN DATASET
+     A curated benchmark dataset of inputs and validated ground-truth outputs
+     used as a standard for evaluation.
+
+  LLM-AS-A-JUDGE
+     The technique of utilizing a language model to evaluate the output
+     quality of another language model.
+
+  MODEL EVAL
+     Assessment of a foundation model's general capabilities across
+     standardized academic benchmarks.
+
+  PRODUCTION FLYWHEEL
+     The continuous cycle where production failures are captured, labeled,
+     and added to evaluation datasets to retrain or refine systems.
+
+  SYSTEM PROMPT
+     Instructions given to an LLM that define its role, behavior, constraints,
+     and output requirements.
+
+════════════════════════════════════ END ═══════════════════════════════════════
