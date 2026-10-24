@@ -147,14 +147,68 @@ for an enterprise like Zomato.
 ================================================================================
 
 Evaluating an LLM application requires a STRUCTURED, REPEATABLE LOOP.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               THE 10-STEP LLM APPLICATION EVALUATION WORKFLOW                ║
+║             Loop: Steps 5-8  |  Flywheel: Step 10 back to Step 3             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-   🔵 FRAME        🟣 SETUP              🟡 ITERATE LOOP               🟢 SHIP
-  ┌────────┐    ┌──────────┐    ┌───────────────────────────────┐    ┌────────┐
-  │ 1 Task │──► │ 3 Golden │──► │ 5 Run ► 6 Evaluate ► 7 Analyze│──► │9 Deploy│
-  │ 2 Crit.│    │ 4 Method │    │   ▲                       │   │    │10 Mon. │
-  └────────┘    └──────────┘    │   └──── 8 Improve ◄───────┘   │    └────────┘
-                                └───────────────────────────────┘
+      ╔══════════════════════════════════════╗
+      ║ STEP 1 : DEFINE TASK & TARGET        ║   🔵 Phase 1: Task framing
+      ║ Email classification (multi-class)   ║
+      ╚═══════════════════╤══════════════════╝
+                          ▼
+      ╔══════════════════════════════════════╗
+      ║ STEP 2 : SUCCESS CRITERIA & METRIC   ║   🔵 Phase 1
+      ║ No misroutes  |  Metric: Accuracy    ║
+      ╚═══════════════════╤══════════════════╝
+                          ▼
+      ╔══════════════════════════════════════╗
+ ┌───►║ STEP 3 : BUILD GOLDEN DATASET        ║   🟣 Phase 2: Setup
+ │    ║ 50-500 real emails + verified labels ║   ◄ flywheel adds new emails here
+ │    ╚═══════════════════╤══════════════════╝
+ │                        ▼
+ │    ╔══════════════════════════════════════╗
+ │    ║ STEP 4 : CHOOSE EVALUATOR            ║   🟣 Phase 2
+ │    ║ Code / Human / LLM-as-a-Judge        ║   (here: code, exact match)
+ │    ╚═══════════════════╤══════════════════╝
+ │                        ▼
+ │    ╔══════════════════════════════════════╗
+ │ ┌─►║ STEP 5 : RUN THE SYSTEM              ║   🟡 Phase 3: Iterative loop
+ │ │  ║ Predict a label for every row        ║   ◄ loop re-enters here
+ │ │  ╚═══════════════════╤══════════════════╝
+ │ │                      ▼
+ │ │  ╔══════════════════════════════════════╗
+ │ │  ║ STEP 6 : EVALUATE RESULTS            ║   🟡 Phase 3
+ │ │  ║ Compare with ground truth            ║   Run 1 → 80%
+ │ │  ╚═══════════════════╤══════════════════╝
+ │ │                      ▼
+ │ │  ╔══════════════════════════════════════╗
+ │ │  ║ STEP 7 : ANALYZE ERRORS              ║   🟡 Phase 3
+ │ │  ║ Prompt ambiguity? Model too small?   ║   Run 2 → 90% (better prompt)
+ │ │  ╚═══════════════════╤══════════════════╝
+ │ │                      ▼
+ │ │  ╔══════════════════════════════════════╗
+ │ └──║ STEP 8 : IMPROVE & ITERATE           ║   🟡 Phase 3
+ │    ║ Refine prompt OR upgrade the LLM     ║   Run 3 → 95% (bigger LLM)
+ │    ╚═══════════════════╤══════════════════╝
+ │                        ▼ target met (95%+)
+ │    ╔══════════════════════════════════════╗
+ │    ║ STEP 9 : DEPLOY                      ║   🟢 Phase 4: Ship & monitor
+ │    ║ Ship once accuracy hits 95%+         ║
+ │    ╚═══════════════════╤══════════════════╝
+ │                        ▼
+ │    ╔══════════════════════════════════════╗
+ └────║ STEP 10 : MONITOR IN PRODUCTION      ║   🟢 Phase 4
+      ║ Teams flag live misroutes            ║   flagged emails → Golden Dataset
+      ╚══════════════════════════════════════╝
 
+  ┌─ HOW TO READ THE ARROWS ─────────────────────────────────────────────────┐
+  │ ▼        next step                                                       │
+  │ ┌─►      inner line = ITERATION LOOP: Step 8 goes back to Step 5 and     │
+  │          re-runs on the SAME Golden Dataset until accuracy hits 95%+     │
+  │ ┌───►    outer line = DATA FLYWHEEL: misroutes flagged in Step 10        │
+  │          are added to the Golden Dataset (Step 3), then re-evaluated     │
+  └──────────────────────────────────────────────────────────────────────────┘
 --------------------------------------------------------------------------------
  🟠 STEP 1: Define Task and Target
 --------------------------------------------------------------------------------
