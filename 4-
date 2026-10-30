@@ -1,0 +1,129 @@
+WHY YOUR AI APPLICATION NEEDS MULTIPLE EVAL PIPELINES | CampusX
+=================================================================
+
+
+WHY DO WE NEED MULTIPLE LLM EVALUATION PIPELINES?
+-------------------------------------------------
+
+- An LLM-powered AI application or agent can have multiple failure points.
+
+- One eval pipeline can focus on the retriever and another on the generator.
+
+- Suppose we've confirmed that the retriever and the generator each work fine
+  on their own. Does that mean the RAG app as a whole will work fine?
+  Not necessarily.
+
+- For example, the retriever might correctly fetch 5 chunks from the vector DB
+  (since k = 5). These 5 chunks plus the query are sent to the generator (LLM).
+  Because of the system prompt, the generator focuses on d1 and d2, but the
+  actual answer was in d5, so it gives the wrong answer.
+
+- So we need another evaluation on the combination of retriever and generator.
+
+- We might also need re-ranking. Individual components can work fine while the
+  combination still fails.
+
+- Failures can occur at the component level, the workflow level, or the entire
+  application level, so we need evals at all three levels.
+
+
+LLM APPLICATION EVAL - RISK CATEGORIES
+--------------------------------------
+
+1. Application Quality - "Is the answer any good?"
+   Whether the app does its actual job well: gives correct, relevant, complete
+   answers that do what the user asked. This is the core "does it work"
+   question, the thing the product exists to do.
+
+2. Safety - "Could the answer cause harm?"
+   Whether the app avoids hurting anyone or exposing anything it shouldn't:
+   no toxic or dangerous content, no bias against groups, no leaking of private
+   data, and no getting tricked into breaking its own rules. This isn't about
+   whether the answer is good, but whether it's harmful.
+
+3. Operational - "Is it fast, cheap, and reliable enough to run?"
+   Whether the app is practical to operate at scale: it responds quickly,
+   doesn't cost too much per answer, and doesn't crash or fail under real
+   traffic. This isn't about what the answer says, but about the system
+   delivering it.
+
+The clean way to tell them apart:
+   Quality     -> the CONTENT of the answer
+   Safety      -> the HARM the answer could do
+   Operational -> the SYSTEM producing it
+
+
+=================================================================
+1. APPLICATION QUALITY
+=================================================================
+
+1a. Core Generation Quality (evaluates the LLM)
+-----------------------------------------------
+Correctness / accuracy     Whether the factual claims in the answer are
+                           actually true.
+Relevance                  Whether the answer addresses what the user
+                           actually asked.
+Completeness               Whether the answer covers all parts of a
+                           multi-part question.
+Instruction following      Whether the output obeys explicit constraints
+                           (format, length, etc.).
+
+
+1b. RAG-Specific Quality
+------------------------
+Context relevance          Whether the retrieved chunks are actually
+                           relevant to the query.
+Retrieval recall           Whether all chunks needed to answer were
+                           retrieved.
+Groundedness /             Whether every claim is supported by the
+faithfulness               retrieved context.
+Citation accuracy          Whether cited sources genuinely support the
+                           claims made.
+
+
+1c. Agent / Tool-Use Quality
+----------------------------
+Tool selection             Whether the agent chose the right tool for the
+                           task.
+Parameter correctness      Whether the tool was called with valid, correctly
+                           typed arguments.
+Task completion            Whether the agent actually accomplished the
+                           user's goal.
+Error recovery             Whether it handled tool failures gracefully and
+                           retried sensibly.
+
+
+1d. Multi-Turn Conversation Quality
+-----------------------------------
+Context retention /        Whether it remembers relevant facts given earlier
+memory                     in the conversation.
+Clarification behavior     Whether it asks for clarification when the
+                           request is ambiguous.
+
+
+=================================================================
+2. SAFETY
+=================================================================
+Toxicity                   Whether the output contains offensive, abusive,
+                           or hateful language.
+Harmful content            Whether it provides dangerous instructions
+                           (self-harm, weapons, illegal acts).
+Bias / fairness            Whether outputs are free of unfair treatment or
+                           stereotyping across groups.
+PII leakage                Whether it exposes personal or private data.
+Prompt injection /         Whether it resists attempts to override its
+jailbreak resistance       rules or bypass guardrails.
+
+
+=================================================================
+3. OPERATIONAL
+=================================================================
+End-to-end latency         Total time from user request to final response.
+Cost per request           Total token/compute spend to produce one
+                           response.
+Token efficiency           Whether it achieves its result without wasteful
+                           token usage.
+Error / failure rate       Fraction of requests that fail, time out, or
+                           return malformed output.
+Latency under load         Whether latency stays acceptable at production
+                           concurrency.
