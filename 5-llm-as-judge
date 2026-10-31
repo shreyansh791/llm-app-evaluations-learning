@@ -1,0 +1,56 @@
+Video 5 
+LLM Eval Methods | LLM-as-a-Judge | Reference Based Evals Vs Reference Free Evals
+
+An LLM Eval method is the mechanism you use to decide whether the LLM's  output is good or not - the actual procedure that takes an output and produces a judgement about the output quality.
+
+1. Programmatic/deterministic - code produces the verdict. The outout is checked against a rule or a known correct answer by a program: exact match, regrex,JSON Schema validation, or running the output(execute the code, run the SQL) and comparing results.
+Fast, Cheap, reproducible - but only works where correctness is mechnanically checkable.
+
+Out of all the correct/relevant items that exist, how many did the system retrieve in its top k results?
+
+Recall@k = Number of relevant items retrieved in top k / Total number of relevant items
+
+Query ID	Question	Gold Doc IDs
+q1	How long is the ML course?	101
+q2	What are the prerequisites for the ML course and how long is it?	101, 103
+q3	What is the fee for the Deep Learning course?	202
+q4	Does the ML course cover neural networks?	101, 104
+q5	How do I get a refund if I drop out?	301
+q6	Is there any EMI or installment option for fees?	205, 207
+Query ID	Gold IDs	Retrieved top-5	Found	Recall@5
+q1	101	101, 202, 108, 305, 410	101	1/1 = 1.0
+q2	101, 103	101, 202, 108, 305, 410	101	1/2 = 0.5
+q3	202	202, 205, 101, 309, 118	202	1/1 = 1.0
+q4	101, 104	104, 101, 210, 305, 401	101, 104	2/2 = 1.0
+q5	301	118, 209, 405, 210, 150	(none)	0/1 = 0.0
+
+The q6 row of the second table is cut off in the screenshot, so it isn’t included.
+
+Here's the text from this slide:
+
+**recall@k = (1.0 + 0.5 + 1.0 + 1.0 + 0.0 + 0.5) / 6 = 4.0 / 6 ≈ 0.67**
+
+**Improvements**
+- Better Embedding model
+- Query Expansion
+- Increase K
+- Reranking
+
+This also fills in the missing q6 row from the earlier table: its Recall@5 was 0.5, meaning 1 of its 2 gold docs (205, 207) was found.
+
+2.Human - a person is responsible for producing the verdict.
+People rate,rank or compare outputs directly. The most expensive and slowest,but the gold standard for nuanced, subjective, or high stakes judgements.
+
+3. LLM as a judge - model (LLM) produces the verdict. A strong LLM score or ranks the output against a rubric. Used where there is no single right answer but you can describe what "good" looks like - helpfulness, tone, groundedness.
+
+Referene Based vs Reference free evals
+
+Reference based
+You have a reference - a known correct answer (or a keys things a correct answer must contain) written down in advance for each test case. You grade by comparing the output against that reference.
+
+Reference free
+You have no predefined correct answer. You jusdge the output quality directly on its own terms against a criteria or rubric. But a rubric here is a scale/standard (what does good answer look like). not a per item correct answer.
+
+
+
+
