@@ -1,0 +1,69 @@
+Offline Evals Vs Online Evals | CampusX
+
+offline evals are the ones which will come into picture before deployment 
+
+what are the main purpose of offline evals.
+1) Pre-release testing (I can properly test my application before deployment)
+2) Version comparison (evaluate open ai model vs claude model which is better for me based on the same golden datasets)
+we can compare different models, prompts, re-rankers,vector dbs etc.
+3) Regression testing
+
+but What about Post Deployment
+1) Un-anticipated Inputs - questions mixing Hindi and English,ambiguous half questions, angry rants with real questions buried inside, adversarial prompt injections attempts, questions about edge cases scenarios you never considered earlier in offline Evals.
+
+2) Emergent / systematic failures -  problems that only exist at scale, under load, over time. (A retrieval index silently lagging its source document, cost per conversation quietly tripling after a prompt change, the latency tail (p99) frustrating a slice of users, a subtle bias that only becomes visible across thousands of conversations, degradation that only appears under real concurrent load.)
+
+3) Drift -  offline eval gets obselete.
+
+Online Evals - Its evaluating your system on live production traffic, after deployment, as real users interact with it.
+
+
+🟦 = OFFLINE EVAL (before deployment)      🟨 = ONLINE EVAL (after deployment)
+
++--------------+-----------------------------------+----------------------------------------+
+|              | 🟦 OFFLINE EVAL                   | 🟨 ONLINE EVAL                         |
+|              | 🟦 (before deployment)            | 🟨 (after deployment)                  |
++--------------+-----------------------------------+----------------------------------------+
+| Data         | 🟦 Fixed, pre-collected dataset   | 🟨 Live production traffic             |
+| Answer key   | 🟦 Known in advance               | 🟨 None - must estimate quality        |
+| Timing       | 🟦 Runs before shipping           | 🟨 Runs continuously, live             |
+| Inputs seen  | 🟦 Only what you anticipated      | 🟨 The real, messy distribution        |
+| Catches      | 🟦 Known regressions              | 🟨 Drift, surprises, emergent bugs     |
+| Best for     | 🟦 Gating, version comparison, CI | 🟨 Real-world quality, drift detection |
++--------------+-----------------------------------+----------------------------------------+
+Biggest Challenge - In production, there is no answer key. 
+
+offline evals- is your application functioning correctly?
+online evals - is you application working normally in production?
+
+Online Eval pipeline - important part is logging.. whatever is happening in production
+
+Logging
+Capture a structured, replayable of every conversation turn.
+
+Logging  --> Sampling  --> evaluator --> Dashbaord --> Alerts
+
+🟪 = COMPUTED (produced by an evaluator)      🟩 = CAPTURED (read directly from trace)
+
++-----------------------------------+-------------------------------------+
+| 🟪 COMPUTED                       | 🟩 CAPTURED                         |
+| 🟪 (produced by an evaluator)     | 🟩 (read directly from trace)       |
++-----------------------------------+-------------------------------------+
+| 🟪 Faithfulness                   | 🟩 Thumbs up / down                 |
+| 🟪 Answer relevance               | 🟩 Escalation rate                  |
+| 🟪 Correctness                    | 🟩 Abandonment / drop-off           |
+| 🟪 Hallucination                  | 🟩 Rephrase rate                    |
+| 🟪 Toxicity                       | 🟩 Conversion                       |
+| 🟪 Bias & fairness                | 🟩 Latency (p50 / p95 / p99)        |
+| 🟪 PII leakage / prompt injection | 🟩 Cost per conversation            |
+| 🟪 Conciseness                    | 🟩 Token usage                      |
+| 🟪 Task completion, satisfaction  | 🟩 Error rate                       |
++-----------------------------------+-------------------------------------+
+if there is a evaluator on the tracing.. then its a online evaluator..
+if there is a evaluator on the datasets.. then its a offline evaluator.
+Langsmith is a online+offline evaluation platform.
+
+
+
+
+
