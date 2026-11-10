@@ -168,7 +168,7 @@ LLMs are general-purpose, so **no single number** captures how good one is (ther
 
 ```mermaid
 flowchart TD
-    S1["1️⃣ Select Target Capability"] --> S2["2️⃣ Assemble Test Mechanism<br/>(Benchmark or Custom Set)"]
+    S1["1️⃣ Decide What to Measure"] --> S2["2️⃣ Get Test for Model Evals<br/>(Benchmark or Custom Set)"]
     S2 --> S3["3️⃣ Execute Model under Fixed Protocol"]
     S3 --> S4["4️⃣ Score, Calculate Metrics & Interpret"]
 
