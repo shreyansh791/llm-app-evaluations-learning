@@ -1,7 +1,4 @@
 # 📘 Complete Study Notes: LLM Benchmarking and Evaluation
-
-> **Color legend:** 🔵 Section · 🔷 Sub-section · 🔴 Key term / definition · 🟢 Example / mitigation · 🟣 Metric / parameter / number · 🟠 Tool / library · ⚠️ Pitfall / warning
-
 ---
 
 ## 🔵 1. Introduction and Context of Model Evaluations
