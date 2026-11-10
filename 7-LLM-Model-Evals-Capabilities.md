@@ -180,8 +180,8 @@ flowchart TD
 
 | Step | Name | What happens |
 |:---:|---|---|
-| 🟢 **1** | **Select Target Capability** | Pick exactly what you're testing (math reasoning, Python code generation, jailbreak resistance, instruction following) |
-| 🔵 **2** | **Assemble Test Mechanism** | Use an established public benchmark or build your own internal eval dataset |
+| 🟢 **1** | **Decide What to Measure** | Pick exactly what you're testing (math reasoning, Python code generation, jailbreak resistance, instruction following) |
+| 🔵 **2** | **Get Test for Model Evals** | Use an established public benchmark or build your own internal eval dataset |
 | 🟡 **3** | **Execute Under Fixed Protocol** | Keep the prompt template, system instructions, `temperature`, `top_p`, and context window **identical** across models so results are reproducible |
 | 🔴 **4** | **Score & Interpret** | Parse the outputs, score them against ground truth or metrics, and analyse the results |
 
